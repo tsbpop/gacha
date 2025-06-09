@@ -74,13 +74,12 @@ if uploaded_file:
                 total_11pulls = draw_count // 11 + (1 if draw_count % 11 != 0 else 0)
                 total_cost = total_11pulls * cost_per_11pull
                 s_count = grade_counts.get("S", 0)
-                r_count = grade_counts.get("R", 0)
+
 
                 st.write(f"총 뽑기 비용: {total_cost}원")
                 if s_count:
                     st.write(f"S등급 1개당 평균 비용: {total_cost / s_count:.2f}원")                    
-                if r_count:
-                    st.write(f"R등급 1개당 평균 비용: {total_cost / r_count:.2f}원")
+
 
         with tab2:
             st.subheader("🔨 합성 시뮬레이터")
@@ -114,8 +113,7 @@ if uploaded_file:
                             if is_pity:
                                 pity_success += 1
                                 fail_streak = 0  # 천장 성공 시에만 초기화
-                            else :
-                                fail_streak += 1 # 일반 성공 시에도 카운트 증가
+
                             
                         else:
                             logs.append(f"{i:2}회차: {start_grade} → 실패")
