@@ -39,11 +39,12 @@ if uploaded_file:
                     is_pity = pity_counter >= pity_limit
                     if is_pity and not s_pool.empty:
                         chosen = s_pool.sample(1).iloc[0]
-                        pity_counter = 0
+                        pity_counter = 0  # 천장으로 획득했으니 초기화
                     else:
                         rand = random.uniform(0, 100)
                         chosen = df[df["누적확률"] > rand].iloc[0]
-                        pity_counter = 0 if chosen["등급"] == "S" else pity_counter + 1
+                        # 천장 아니면 카운터 증가 (초기화 안함)
+                        pity_counter += 1
 
                     draw_results.append({
                         "회차": i,
@@ -73,10 +74,13 @@ if uploaded_file:
                 total_11pulls = draw_count // 11 + (1 if draw_count % 11 != 0 else 0)
                 total_cost = total_11pulls * cost_per_11pull
                 s_count = grade_counts.get("S", 0)
+                r_count = grade_counts.get("R", 0)
 
                 st.write(f"총 뽑기 비용: {total_cost}원")
                 if s_count:
-                    st.write(f"S등급 1개당 평균 비용: {total_cost / s_count:.2f}원")
+                    st.write(f"S등급 1개당 평균 비용: {total_cost / s_count:.2f}원")                    
+                if r_count:
+                    st.write(f"R등급 1개당 평균 비용: {total_cost / r_count:.2f}원")
 
         with tab2:
             st.subheader("🔨 합성 시뮬레이터")
@@ -101,19 +105,22 @@ if uploaded_file:
                 rate = synthesis_rates.get(start_grade, 0)
 
                 for i in range(1, synth_count + 1):
-                    is_pity = fail_streak >= synth_pity
-                    rand = random.randint(1, 100)
+                        is_pity = fail_streak >= synth_pity
+                        rand = random.randint(1, 100)
 
-                    if is_pity or rand <= rate:
-                        logs.append(f"{i:2}회차: {start_grade} → {next_grade} [성공]" + (" (천장 발동!)" if is_pity else ""))
-                        success += 1
-                        if is_pity:
-                            pity_success += 1
-                        fail_streak = 0
-                    else:
-                        logs.append(f"{i:2}회차: {start_grade} → 실패")
-                        fail += 1
-                        fail_streak += 1
+                        if is_pity or rand <= rate:
+                            logs.append(f"{i:2}회차: {start_grade} → {next_grade} [성공]" + (" (천장 발동!)" if is_pity else ""))
+                            success += 1
+                            if is_pity:
+                                pity_success += 1
+                                fail_streak = 0  # 천장 성공 시에만 초기화
+                            else :
+                                fail_streak += 1 # 일반 성공 시에도 카운트 증가
+                            
+                        else:
+                            logs.append(f"{i:2}회차: {start_grade} → 실패")
+                            fail += 1
+                            fail_streak += 1
 
                 st.text_area("🎯 결과 로그", "\n".join(logs), height=300)
                 st.write(f"총 시도: {synth_count}, 성공: {success}, 실패: {fail}, 천장 성공: {pity_success}")
